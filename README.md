@@ -1,37 +1,12 @@
 import streamlit as st
 import datetime
 
-# Configuração da página e do tema visual (Preto Grafite e Dourado)
+# Configuração da página
 st.set_page_config(
     page_title="Clube da Barbearia - Agendamentos", 
     page_icon="💈", 
     layout="centered"
 )
-
-# Injeção de CSS nativo para forçar as cores personalizadas sem quebrar o layout
-st.markdown("""
- <style>
- /* Fundo da página (Preto Grafite) */
- .stApp {
-     background-color: #1A1A1A !important;
-     color: #FFFFFF !important;
- }
- 
- /* Títulos e Subtítulos em Dourado */
- h1, h2, h3, h4, h5, h6, .stSubheader, p {
-     color: #D4AF37 !important;
- ]
- 
- /* Customização dos botões (Fundo dourado, texto escuro) */
- div.stButton > button {
-     background-color: #D4AF37 !important;
-     color: #1A1A1A !important;
-     font-weight: bold !important;
-     border: none !important;
-     width: 100% !important;
- }
- </style>
-""", unsafe_allow_html=True)
 
 # Inicialização do "Banco de Dados" simulado na sessão do usuário
 if "agendamentos" not in st.session_state:
