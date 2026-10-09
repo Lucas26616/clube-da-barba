@@ -8,45 +8,27 @@ st.set_page_config(
     layout="centered"
 )
 
-# Injeção de CSS para forçar as cores personalizadas
+# Injeção de CSS nativo para forçar as cores personalizadas sem quebrar o layout
 st.markdown("""
  <style>
  /* Fundo da página (Preto Grafite) */
  .stApp {
-     background-color: #1A1A1A;
-     color: #FFFFFF;
+     background-color: #1A1A1A !important;
+     color: #FFFFFF !important;
  }
  
  /* Títulos e Subtítulos em Dourado */
- h1, h2, h3, h4, h5, h6, .stSubheader {
+ h1, h2, h3, h4, h5, h6, .stSubheader, p {
      color: #D4AF37 !important;
- }
+ ]
  
  /* Customização dos botões (Fundo dourado, texto escuro) */
- div.stButton > button:first-child {
-     background-color: #D4AF37;
-     color: #1A1A1A;
-     font-weight: bold;
-     border: none;
-     transition: all 0.3s ease;
-     width: 100%;
- }
- div.stButton > button:first-child:hover {
-     background-color: #AA8726;
-     color: #FFFFFF;
-     box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
- }
- 
- /* Inputs, Selectboxes e Datepickers text color */
- label, .stSelectbox, .stTextInput, .stDateInput {
-     color: #FFFFFF !important;
- }
- 
- /* Caixas de Alerta/Info personalizadas */
- .stAlert {
-     background-color: #2D2D2D !important;
-     border-left: 5px solid #D4AF37 !important;
-     color: #FFFFFF !important;
+ div.stButton > button {
+     background-color: #D4AF37 !important;
+     color: #1A1A1A !important;
+     font-weight: bold !important;
+     border: none !important;
+     width: 100% !important;
  }
  </style>
 """, unsafe_allow_html=True)
@@ -68,12 +50,12 @@ HORA_FIM = 18
 
 def gerar_horarios_dia():
     horarios = []
-    atual = datetime.datetime.combine(datetime.date.today(), datetime.time(HORA_INICIO, 0))
+    inicio = datetime.datetime.combine(datetime.date.today(), datetime.time(HORA_INICIO, 0))
     limite = datetime.datetime.combine(datetime.date.today(), datetime.time(HORA_FIM, 0))
     
-    while atual < limite:
-        horarios.append(atual.time().strftime("%H:%M"))
-        atual += datetime.timedelta(minutes=30)
+    while inicio < limite:
+        horarios.append(inicio.time().strftime("%H:%M"))
+        inicio += datetime.timedelta(minutes=30)
     return horarios
 
 # Interface do Usuário
@@ -84,8 +66,6 @@ st.subheader("Reserve o seu horário de forma simples e rápida")
 aba_reservar, aba_meus_agendamentos = st.tabs(["📅 Reservar Horário", "📋 Agendamentos do Dia"])
 
 with aba_reservar:
-    st.write("---")
-    
     # 1. Seleção do Serviço
     servico_selecionado = st.selectbox(
         "Selecione o serviço desejado:",
@@ -101,11 +81,9 @@ with aba_reservar:
     col1, col2 = st.columns(2)
     
     with col1:
-        # Bloqueia datas passadas
         data_selecionada = st.date_input("Escolha a data:", min_value=datetime.date.today())
         
     with col2:
-        # Filtra horários já ocupados naquele dia específico
         horarios_disponiveis = gerar_horarios_dia()
         horarios_ocupados = [
             a["hora"] for a in st.session_state.agendamentos 
@@ -116,19 +94,18 @@ with aba_reservar:
         if horarios_filtrados:
             hora_selecionada = st.selectbox("Escolha o horário:", options=horarios_filtrados)
         else:
-            st.warning("⚠️ Não há horários disponíveis para este dia.")
+            st.warning("Não há horários disponíveis para este dia.")
             hora_selecionada = None
 
     # 4. Botão de Confirmação
     if st.button("Confirmar Agendamento"):
         if not nome_cliente.strip():
-            st.error("Por favor, insira o seu nome para realizar o agendamento.")
+            st.error("Por favor, insira o seu nome.")
         elif not telefone_cliente.strip():
             st.error("Por favor, insira o seu telefone.")
         elif hora_selecionada is None:
-            st.error("Não é possível agendar sem um horário selecionado.")
+            st.error("Selecione um horário válido.")
         else:
-            # Salva o agendamento no session_state
             novo_agendamento = {
                 "cliente": nome_cliente,
                 "telefone": telefone_cliente,
@@ -137,22 +114,11 @@ with aba_reservar:
                 "hora": hora_selecionada
             }
             st.session_state.agendamentos.append(novo_agendamento)
-            st.success(f"🎉 Agendamento realizado com sucesso para {novo_agendamento['data']} às {novo_agendamento['hora']}!")
-            st.balloons()
+            st.success(f"Agendamento realizado para {novo_agendamento['data']} às {novo_agendamento['hora']}!")
 
 with aba_meus_agendamentos:
-    st.write("---")
     if not st.session_state.agendamentos:
         st.info("Nenhum agendamento realizado até o momento.")
     else:
-        # Exibe os agendamentos salvos organizados por cartões explicativos
-        for i, agendamento in enumerate(st.session_state.agendamentos):
-            st.markdown(f"""
-            <div class='stAlert'>
-                <strong>Cliente:</strong> {agendamento['cliente']}<br>
-                <strong>Serviço:</strong> {agendamento['servico']}<br>
-                <strong>Data:</strong> {agendamento['data']} às {agendamento['hora']}<br>
-                <strong>Contato:</strong> {agendamento['telefone']}
-            </div>
-            <br>
-            """, unsafe_allow_html=True)
+        for agendamento in st.session_state.agendamentos:
+            st.code(f"Cliente: {agendamento['cliente']} | Serviço: {agendamento['servico']} | Horário: {agendamento['data']} às {agendamento['hora']}")
